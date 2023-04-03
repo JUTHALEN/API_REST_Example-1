@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -161,9 +163,10 @@ public class ProductoController {
     @PostMapping( consumes = "multipart/form-data")
     @Transactional
     public ResponseEntity<Map<String, Object>> insert(
-                            @Valid @RequestBody Producto producto, 
+                            @Valid 
+                            @RequestPart(name = "producto") Producto producto, 
                             BindingResult result,
-                            @RequestParam (name = "file") MultipartFile file ) throws IOException {
+                            @RequestPart (name = "file") MultipartFile file ) throws IOException {
 
         Map<String, Object> responseAsMap = new HashMap<>();
 
@@ -177,17 +180,17 @@ public class ProductoController {
 
             List<String> errorMessages = new ArrayList<>();
 
-            // for( ObjectError error : result.getAllErrors()) {
+            for( ObjectError error : result.getAllErrors()) {
 
-            //     errorMessages.add(error.getDefaultMessage());
+                errorMessages.add(error.getDefaultMessage());
 
-            // }
+            }
 
-            var prueba = result.getAllErrors();
+            // var prueba = result.getAllErrors();
 
-            prueba.stream().forEach(e -> {
-                errorMessages.add(e.getDefaultMessage());
-            });
+            // prueba.stream().forEach(e -> {
+            //     errorMessages.add(e.getDefaultMessage());
+            // });
 
 
             responseAsMap.put("errores", errorMessages);
@@ -207,7 +210,7 @@ public class ProductoController {
 
          if(!file.isEmpty()) {
             String fileCode =  fileUploadUtil.saveFile(file.getOriginalFilename(), file);
-            producto.setImagenProducto(fileCode+"-"+file.getOriginalFilename());
+            producto.setImagenProducto(fileCode+ "-" + file.getOriginalFilename());
          }
 
          Producto productoDB = productoService.save(producto);
@@ -223,12 +226,12 @@ public class ProductoController {
     
              } else {
 
-                String mensaje = "El producto no se ha creado correctamente" ;
+                String errorMensaje = "El producto no se ha creado correctamente" ;
 
     
-                responseAsMap.put("mensaje", mensaje);
+                responseAsMap.put("mensaje", errorMensaje);
 
-                responseEntity = new ResponseEntity<Map<String,Object>>(responseAsMap, HttpStatus.BAD_REQUEST );
+                responseEntity = new ResponseEntity<Map<String,Object>>(responseAsMap, HttpStatus.INTERNAL_SERVER_ERROR );
     
              }
             
