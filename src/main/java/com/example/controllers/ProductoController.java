@@ -360,6 +360,8 @@ public class ProductoController {
 
         return responseEntity;
     }
+
+    
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity<String> delete(@Valid @RequestBody Producto producto, @PathVariable(name = "id") Integer id) {
